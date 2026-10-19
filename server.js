@@ -13,7 +13,8 @@ app.use(express.json());
 // POST /todo/1?_method=PUT → PUT /todo/1 로 처리
 app.use(methodOverride('_method'));
 
-// 정적 파일 serving (index.html 위치)
+// 정적 파일 serving (public 또는 현재 디렉토리)
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
 // 메모리 저장 (서버 재시작 시 초기화)
@@ -56,9 +57,19 @@ app.delete('/todo/:id', (req, res) => {
 
 // 메인 페이지 전달
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      res.sendFile(path.join(__dirname, 'index.html'));
+    }
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// 로컬 실행용
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
+
+// Vercel 서버리스 모듈 내보내기
+module.exports = app;
